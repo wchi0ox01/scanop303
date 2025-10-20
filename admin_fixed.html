@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตั้งค่าระบบเช็คชื่อ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', 'Kanit', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-6">
+  <div class="max-w-3xl mx-auto bg-gray-800 rounded-xl shadow-lg p-6">
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center space-x-3">
+        <i data-lucide="settings" class="text-blue-400 w-6 h-6"></i>
+        <h1 class="text-xl font-bold">ตั้งค่าระบบเช็คชื่อ</h1>
+      </div>
+      <button onclick="window.location.href='checkin_fixed.html'" class="text-gray-400 hover:text-blue-400">
+        <i data-lucide="camera"></i>
+      </button>
+    </header>
+
+    <div class="space-y-6">
+      <div>
+        <h2 class="text-lg font-semibold mb-2">เวลามาเรียน / มาสาย / ขาด</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm mb-1">เวลาเลท</label>
+            <input type="time" id="lateTime" class="w-full rounded-lg bg-gray-700 p-2" value="08:30" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">เวลาขาด</label>
+            <input type="time" id="absentTime" class="w-full rounded-lg bg-gray-700 p-2" value="12:00" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-semibold mb-2">ตำแหน่งจุดเช็คชื่อ</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm mb-1">ละติจูด</label>
+            <input type="number" step="any" id="checkLat" class="w-full rounded-lg bg-gray-700 p-2" value="14.528491875982493" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">ลองจิจูด</label>
+            <input type="number" step="any" id="checkLng" class="w-full rounded-lg bg-gray-700 p-2" value="100.90787999977255" />
+          </div>
+        </div>
+        <div class="mt-4">
+          <label class="block text-sm mb-1">รัศมี (เมตร)</label>
+          <input type="number" id="checkRadius" class="w-full rounded-lg bg-gray-700 p-2" value="50" />
+        </div>
+        <div class="flex items-center mt-4 space-x-2">
+          <input type="checkbox" id="checkLocation" class="w-4 h-4" checked />
+          <label for="checkLocation" class="text-sm">เปิดใช้งานการตรวจสอบตำแหน่ง</label>
+        </div>
+        <button onclick="getCurrentLocation()" class="mt-4 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">ใช้ตำแหน่งปัจจุบัน</button>
+      </div>
+
+      <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-lg text-lg font-semibold mt-6">บันทึกการตั้งค่า</button>
+    </div>
+
+    <div id="alert" class="mt-6 text-center"></div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function showMessage(msg, type='info'){
+      const alert = document.getElementById('alert');
+      let color = 'text-gray-300';
+      if(type==='success') color = 'text-green-400';
+      if(type==='error') color = 'text-red-400';
+      alert.innerHTML = `<p class="${color}">${msg}</p>`;
+    }
+
+    function saveSettings(){
+      const late = document.getElementById('lateTime').value;
+      const absent = document.getElementById('absentTime').value;
+      const lat = document.getElementById('checkLat').value;
+      const lng = document.getElementById('checkLng').value;
+      const radius = document.getElementById('checkRadius').value;
+      const checkLoc = document.getElementById('checkLocation').checked;
+      localStorage.setItem('lateTime', late);
+      localStorage.setItem('absentTime', absent);
+      localStorage.setItem('checkLat', lat);
+      localStorage.setItem('checkLng', lng);
+      localStorage.setItem('checkRadius', radius);
+      localStorage.setItem('checkLocation', checkLoc);
+      showMessage('บันทึกการตั้งค่าเรียบร้อยแล้ว ✅', 'success');
+    }
+
+    function getCurrentLocation(){
+      if (navigator.geolocation) {
+        showMessage('กำลังรับตำแหน่ง...', 'info');
+        navigator.geolocation.getCurrentPosition((pos)=>{
+          document.getElementById('checkLat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('checkLng').value = pos.coords.longitude.toFixed(6);
+          showMessage('รับตำแหน่งปัจจุบันสำเร็จ ✅', 'success');
+        }, ()=>showMessage('ไม่สามารถรับตำแหน่งได้ ❌', 'error'));
+      } else showMessage('เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง', 'error');
+    }
+  </script>
+</body>
+</html>

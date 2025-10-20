@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='th'>
+<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>เช็คชื่อด้วยใบหน้า</title>
+<script src='https://cdn.tailwindcss.com'></script>
+<script src='https://unpkg.com/lucide@latest'></script>
+<script src='https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js'></script>
+<style>body{font-family:'Inter','Kanit',sans-serif;}</style>
+</head>
+<body class='bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4'>
+<div class='bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-3xl'>
+<header class='flex items-center justify-between mb-6'><div class='flex items-center space-x-3'>
+<i data-lucide='clipboard-check' class='text-blue-400 w-6 h-6'></i><h1 class='text-xl font-bold'>ระบบเช็คชื่อด้วยใบหน้า</h1></div>
+<button onclick="window.location.href='admin_fixed.html'" class='text-gray-400 hover:text-blue-400'><i data-lucide='settings'></i></button></header>
+<div id='alert' class='text-center mb-4'></div>
+<div id='start-section' class='text-center'><h2 class='text-lg font-semibold mb-2'>เริ่มการเช็คชื่อ</h2>
+<p class='text-gray-400 mb-4'>กดปุ่มด้านล่างเพื่อเริ่มสแกนใบหน้า</p>
+<button onclick='startScanning()' class='bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-full font-semibold'>เริ่มเช็คชื่อ</button></div>
+<div id='scan-section' class='hidden text-center'><div class='loader w-12 h-12 border-4 border-gray-600 rounded-full mx-auto mb-4'></div>
+<p id='status-text' class='text-gray-400'>กำลังเปิดกล้อง...</p><div id='video-wrapper' class='hidden mt-4 relative'>
+<video id='video' width='100%' autoplay muted playsinline class='rounded-lg'></video><canvas id='overlay' class='absolute top-0 left-0'></canvas></div>
+<button onclick='stopScanning()' class='mt-6 bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full'>หยุดสแกน</button></div></div>
+<script>
+lucide.createIcons();
+const DEFAULT_URL='https://script.google.com/macros/s/AKfycbxjirw7KTSTtRWKntjFXkne8QltcRbL9Pcvt6cAHkgNrWs6Rnqueh4W5yveiogyYhSi/exec';
+let gasWebAppUrl=localStorage.getItem('gasWebAppUrl')||DEFAULT_URL;
+function showMessage(msg,type='info'){const a=document.getElementById('alert');let c='text-gray-300';if(type==='success')c='text-green-400';if(type==='error')c='text-red-400';a.innerHTML=`<p class='${c}'>${msg}</p>`;}
+function distanceMeters(lat1,lon1,lat2,lon2){const R=6371e3;const φ1=lat1*Math.PI/180,φ2=lat2*Math.PI/180;const Δφ=(lat2-lat1)*Math.PI/180;const Δλ=(lon2-lon1)*Math.PI/180;const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+async function verifyLocation(){return new Promise(r=>{if(!navigator.geolocation){r({withinRange:true,distance:0});return;}navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lng=p.coords.longitude,sl=parseFloat(localStorage.getItem('checkLat')||'14.528491875982493'),sg=parseFloat(localStorage.getItem('checkLng')||'100.90787999977255'),rad=parseFloat(localStorage.getItem('checkRadius')||'50'),d=distanceMeters(lat,lng,sl,sg);r({withinRange:d<=rad,distance:d});},()=>r({withinRange:true,distance:0}));});}
+async function startScanning(){const cl=localStorage.getItem('checkLocation')==='true';if(cl){const ck=await verifyLocation();if(!ck.withinRange){showMessage(`⚠️ อยู่นอกพื้นที่ (${ck.distance.toFixed(1)} เมตร) กรุณาเข้าใกล้จุดเช็คชื่อ`,'error');return;}}document.getElementById('start-section').classList.add('hidden');document.getElementById('scan-section').classList.remove('hidden');startVideo();}
+async function startVideo(){const v=document.getElementById('video'),t=document.getElementById('status-text');try{const s=await navigator.mediaDevices.getUserMedia({video:true});v.srcObject=s;v.onplay=()=>{document.getElementById('video-wrapper').classList.remove('hidden');t.innerText='กำลังสแกนใบหน้า...';}}catch(e){showMessage('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้อง','error');}}
+function stopScanning(){const v=document.getElementById('video');if(v.srcObject)v.srcObject.getTracks().forEach(t=>t.stop());document.getElementById('scan-section').classList.add('hidden');document.getElementById('start-section').classList.remove('hidden');showMessage('หยุดการสแกนเรียบร้อย','success');}
+</script>
+</body></html>
